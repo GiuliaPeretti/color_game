@@ -44,35 +44,90 @@ def draw_color_bar():
         pygame.draw.rect(screen, i, (x,y,w,w), border_radius=10)
         pygame.draw.rect(screen, WHITE, (x,y,w,w), 3, 10)
         x=x+w-2
+    return colors
 
 def draw_squares(n_per_row=3):
     matrix=[]
-
+    matrix_status=[]
     if(n_per_row/(70*6)<(SCREEN_HEIGHT-170)/5):
         w=(SCREEN_HEIGHT-170)/5
     else:
         w=(70*6)/n_per_row
-    print(w)
     x_offset=(560-90)/4/(n_per_row-1)
     x_offset=-2
     y_offset=-2
     x,y=90+(70*6-w*n_per_row)/2,30
-    for row in range(5):
-        temp=[]
+    for row in range(4):
+        temp1=[]
+        temp2=[]
         x=90+(70*6-w*n_per_row)/2
         for col in range(n_per_row):
             pygame.draw.rect(screen, WHITE, (x,y,w,w), 3, 10)
-            temp.append([x,y,w,w])
+            temp1.append([x,y,w,w])
+            temp2.append(-1)
             x=x+w+x_offset
-        matrix.append(temp)
+        matrix.append(temp1)
+        matrix_status.append(temp2)
         y=y+w+y_offset
-        return(matrix)
+
+    y=y+15
+    x=90+(70*6-w*n_per_row)/2
+    temp1=[]
+    for col in range(n_per_row):
+        pygame.draw.rect(screen, WHITE, (x,y,w,w), 3, 10)
+        temp1.append([x,y,w,w])
+        x=x+w+x_offset
+    matrix.append(temp1)
+    return(matrix, matrix_status)
 
 def gen_puzzle(n_per_row=3):
     puzzle=[]
     for i in range(n_per_row):
-        puzzle.append(random.choice(COLORS))
+        puzzle.append(random.randint(0,len(COLORS)-1))
     return(puzzle)
+
+def show_solution():
+    print("puzzle: "+ str(puzzle))
+    for i in range(len(puzzle)):
+        pygame.draw.rect(screen, COLORS[puzzle[i]], matrix[4][i], border_radius=10)
+    _=draw_squares()
+
+def color_square(i):
+    # for row in range(len(matrix_status)):
+    row=current_row
+    for col in range(len(matrix[row])):
+        if matrix_status[row][col]==-1:
+            matrix_status[row][col]=i
+            pygame.draw.rect(screen, COLORS[i], matrix[row][col], border_radius=10)
+            break
+    if matrix_status[row][n_per_row-1]!=-1:
+        win, lost=check_win(row)
+        end()
+        # else:
+        #     continue
+        # break
+    _,_=draw_squares()
+
+def check_win(row):
+    win=True
+    lost=False
+    print(matrix_status[row])
+    print(puzzle)
+    for col in matrix_status[row]:
+        if col!=puzzle[col]:
+            win=False
+    if(not(win) and row==3):
+        lost=True
+    return(win,lost)
+
+def end():
+    if(win):
+        print("WIN")
+    elif(lost):
+        print("LOST")
+
+
+
 
 
 
@@ -87,13 +142,18 @@ if __name__=='__main__':
     font = pygame.font.SysFont('arial', 20)
 
     win=False
-    loose=False
+    lost=False
     selected=-1
     game_started=False
+    n_per_row=3
+    current_row=0
     buttons=gen_buttons()
     draw_buttons()
-    draw_color_bar()
-    matrix=draw_squares()
+    colors=draw_color_bar()
+    matrix, matrix_status=draw_squares()
+    puzzle=gen_puzzle()
+    print(matrix)
+    show_solution()
 
     run  = True
     number=0
@@ -129,6 +189,10 @@ if __name__=='__main__':
                 else:
                     selected=-1
                 draw_buttons()
+            
+                for i in range (len(colors)):
+                    if (x>=colors[i][0] and x<=colors[i][0]+colors[i][2] and y>=colors[i][1] and y<=colors[i][1]+colors[i][3]):
+                        color_square(i)
 
 
                     
