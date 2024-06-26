@@ -53,7 +53,6 @@ def draw_squares(n_per_row=3):
         w=(SCREEN_HEIGHT-170)/5
     else:
         w=(70*6)/n_per_row
-    x_offset=(560-90)/4/(n_per_row-1)
     x_offset=-2
     y_offset=-2
     x,y=90+(70*6-w*n_per_row)/2,30
@@ -100,34 +99,61 @@ def color_square(i):
             matrix_status[row][col]=i
             pygame.draw.rect(screen, COLORS[i], matrix[row][col], border_radius=10)
             break
-    if matrix_status[row][n_per_row-1]!=-1:
-        win, lost=check_win(row)
-        end()
-        # else:
-        #     continue
-        # break
+
     _,_=draw_squares()
 
+
 def check_win(row):
+    print("check_win")
     win=True
     lost=False
     print(matrix_status[row])
     print(puzzle)
-    for col in matrix_status[row]:
-        if col!=puzzle[col]:
+    for i in range (len(matrix_status[row])):
+        if matrix_status[row][i]!=puzzle[i]:
             win=False
     if(not(win) and row==3):
         lost=True
-    return(win,lost)
+    end(win,lost)
 
-def end():
+def end(win, lost):
+    font = pygame.font.SysFont('arial', 40)
+
+    print("check_win")
+    print(win,lost)
+    pygame.draw.rect(screen, BACKGROUND_COLOR, (600,400, 200,100))
     if(win):
-        print("WIN")
+        text="WIN"
+        text=font.render( text, True, RED)
+        screen.blit(text, (650,450))
     elif(lost):
-        print("LOST")
+        text="LOST"
+        text=font.render( text, True, RED)
+        screen.blit(text, (650,450))
+    
+def draw_minimap():
+    w=100/n_per_row
+    y=250
+    for row in range (4):
+        x=640
+        for col in range(n_per_row):
+            if (matrix_status[row][col]==puzzle[col]):
+                color=GREEN
+            elif(matrix_status[row][col] in puzzle):
+                color=YELLOW
+            elif(matrix_status[row][col]==-1):
+                color=BACKGROUND_COLOR
+            else:
+                color=RED
+            pygame.draw.rect(screen, color, (x,y,w,w), border_radius=10)
+            pygame.draw.rect(screen, WHITE, (x,y,w,w), 3, 10)
+            x=x+w
+        y=y+w
 
-
-
+def delete_color():
+    for i in range(n_per_row):
+        if matrix_status!=-1:
+            # TODO: CANCELLARE COLORE, 
 
 
 
@@ -152,6 +178,7 @@ if __name__=='__main__':
     colors=draw_color_bar()
     matrix, matrix_status=draw_squares()
     puzzle=gen_puzzle()
+    draw_minimap()
     print(matrix)
     show_solution()
 
@@ -198,7 +225,14 @@ if __name__=='__main__':
                     
 
             if (event.type == pygame.KEYDOWN):
-                pass
+                if (event.key == pygame.K_RETURN):
+                    print("return")
+                    if (-1 not in matrix_status[current_row]):
+                        check_win(current_row)
+                        current_row+=1
+                        draw_minimap()
+                elif(event.key==pygame.K_BACKSPACE):
+                    delete_color(current_row)
 
 
         pygame.display.flip()
