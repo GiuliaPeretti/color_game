@@ -46,9 +46,10 @@ def draw_color_bar():
         x=x+w-2
     return colors
 
-def draw_squares(n_per_row=3):
+def draw_squares():
     matrix=[]
     matrix_status=[]
+    
     if(n_per_row/(70*6)<(SCREEN_HEIGHT-170)/5):
         w=(SCREEN_HEIGHT-170)/5
     else:
@@ -79,7 +80,7 @@ def draw_squares(n_per_row=3):
     matrix.append(temp1)
     return(matrix, matrix_status)
 
-def gen_puzzle(n_per_row=3):
+def gen_puzzle():
     puzzle=[]
     for i in range(n_per_row):
         puzzle.append(random.randint(0,len(COLORS)-1))
@@ -130,8 +131,10 @@ def end(win, lost):
         text="LOST"
         text=font.render( text, True, RED)
         screen.blit(text, (650,450))
+        show_solution()
     
 def draw_minimap():
+    pygame.draw.rect(screen, BACKGROUND_COLOR, (630,240,200,200))
     w=100/n_per_row
     y=250
     for row in range (4):
@@ -151,9 +154,14 @@ def draw_minimap():
         y=y+w
 
 def delete_color():
-    for i in range(n_per_row):
-        if matrix_status!=-1:
-            # TODO: CANCELLARE COLORE, 
+    for col in range(n_per_row-1,-1, -1):
+        
+        if matrix_status[current_row][col]!=-1:
+            pygame.draw.rect(screen, BACKGROUND_COLOR, matrix[current_row][col], border_radius=10)
+            matrix_status[current_row][col]=-1
+            break
+    _,_=draw_squares()
+            
 
 
 
@@ -175,12 +183,8 @@ if __name__=='__main__':
     current_row=0
     buttons=gen_buttons()
     draw_buttons()
+    print(buttons)
     colors=draw_color_bar()
-    matrix, matrix_status=draw_squares()
-    puzzle=gen_puzzle()
-    draw_minimap()
-    print(matrix)
-    show_solution()
 
     run  = True
     number=0
@@ -192,34 +196,46 @@ if __name__=='__main__':
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x,y=pygame.mouse.get_pos()
+                print(x,y)
+
+                for i in range (len(colors)):
+                    if (x>=colors[i][0] and x<=colors[i][0]+colors[i][2] and y>=colors[i][1] and y<=colors[i][1]+colors[i][3]):
+                        color_square(i)
+
 
                 for i in range (len(buttons)):
                     if(x>=buttons[i]['coordinates'][0] and x<=buttons[i]['coordinates'][0]+buttons[i]['coordinates'][2] and y>=buttons[i]['coordinates'][1] and y<=buttons[i]['coordinates'][1]+buttons[i]['coordinates'][3]):
+                        print(i)
                         if(i<len(buttons)-1):
                             selected=i
                             if(not(game_started)):
                                 select_game=selected
                             draw_buttons()
                             break
-                        elif(i==4):
+                        elif(i==3):
+                            print("play")
                             if(selected!=-1):
+                                pygame.draw.rect(screen, BACKGROUND_COLOR, (600,400, 200,100))
+                                pygame.draw.rect(screen, BACKGROUND_COLOR, (0,0,520,470))
                                 pygame.draw.rect(screen, BACKGROUND_COLOR, (640,490,100,100))
                                 select_game=selected
+                                n_per_row=select_game+3
                                 selected=-1
                                 win=False
                                 loose=False
                                 game_started=True
                                 first_cell=True
-                                buttons=gen_buttons()
                                 draw_buttons()
+                                matrix, matrix_status=draw_squares()
+                                puzzle=gen_puzzle()
+                                draw_minimap()
+
                             break
                 else:
                     selected=-1
                 draw_buttons()
             
-                for i in range (len(colors)):
-                    if (x>=colors[i][0] and x<=colors[i][0]+colors[i][2] and y>=colors[i][1] and y<=colors[i][1]+colors[i][3]):
-                        color_square(i)
+                
 
 
                     
@@ -232,7 +248,7 @@ if __name__=='__main__':
                         current_row+=1
                         draw_minimap()
                 elif(event.key==pygame.K_BACKSPACE):
-                    delete_color(current_row)
+                    delete_color()
 
 
         pygame.display.flip()
